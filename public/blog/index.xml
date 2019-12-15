@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Blogs on Melody Moreno</title>
+    <link>/blog/</link>
+    <description>Recent content in Blogs on Melody Moreno</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-US</language>
+    <lastBuildDate>Sat, 14 Dec 2019 00:00:00 +0000</lastBuildDate>
+    
+	<atom:link href="/blog/index.xml" rel="self" type="application/rss+xml" />
+    
+    
+    <item>
+      <title>Regular Expressions</title>
+      <link>/blog/regex-things/</link>
+      <pubDate>Sat, 14 Dec 2019 00:00:00 +0000</pubDate>
+      
+      <guid>/blog/regex-things/</guid>
+      <description>Regular expressions (regex) detect patterns in strings of text for locating/altering specific text. For example, in the following string of text, findall can be used to locate all instances of “just” followed by any character (signified by “.”) any amount of times (signified by “+”), split can be used to split the string where there is a comma followed by a space, and sub can replace text in the string with another text.</description>
+    </item>
+    
+  </channel>
+</rss>

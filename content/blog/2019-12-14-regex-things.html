@@ -1,0 +1,23 @@
+---
+title: Regular Expressions
+author: Melody Moreno
+date: '2019-12-14'
+slug: regex-things
+categories: []
+tags: []
+description: ''
+---
+
+
+
+<p><img src="/blog/2019-12-14-regex-things_files/spooky.png" /></p>
+<p>Regular expressions (regex) detect patterns in strings of text for locating/altering specific text. For example, in the following string of text, findall can be used to locate all instances of “just” followed by any character (signified by “.”) any amount of times (signified by “+”), split can be used to split the string where there is a comma followed by a space, and sub can replace text in the string with another text.</p>
+<pre class="r"><code>library(reticulate)
+re &lt;- import(&quot;re&quot;)
+string1 = &quot;dont mind me, just doing some regex things.&quot;
+re$findall(&quot;just.+&quot;,string1)</code></pre>
+<pre><code>## [1] &quot;just doing some regex things.&quot;</code></pre>
+<pre class="r"><code>re$split(&quot;, &quot;, string1) </code></pre>
+<pre><code>## [1] &quot;dont mind me&quot;                  &quot;just doing some regex things.&quot;</code></pre>
+<pre class="r"><code>re$sub(&quot;some&quot;,&quot;really cool&quot;,string1)</code></pre>
+<pre><code>## [1] &quot;dont mind me, just doing really cool regex things.&quot;</code></pre>

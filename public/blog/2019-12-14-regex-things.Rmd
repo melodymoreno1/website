@@ -1,0 +1,26 @@
+---
+title: Regular Expressions
+author: Melody Moreno
+date: '2019-12-14'
+slug: regex-things
+categories: []
+tags: []
+description: ''
+---
+
+![](/blog/2019-12-14-regex-things_files/spooky.png)
+
+Regular expressions (regex) detect patterns in strings of text for locating/altering specific text. For example, in the following string of text, findall can be used to locate all instances of "just" followed by any character (signified by ".") any amount of times (signified by "+"), split can be used to split the string where there is a comma followed by a space, and sub can replace text in the string with another text. 
+
+```{r}
+library(reticulate)
+re <- import("re")
+string1 = "dont mind me, just doing some regex things."
+re$findall("just.+",string1)
+
+re$split(", ", string1) 
+
+re$sub("some","really cool",string1)
+
+```
+

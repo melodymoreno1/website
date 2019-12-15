@@ -1,0 +1,113 @@
+---
+title: "resume"
+author: "Melody Moreno"
+date: '12/14/2019'
+output:
+  html_document: default
+  pdf_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# EDUCATION
+
+## The University of Texas at Austin						
+Fall 2019     
+B.S., Psychology, BSA, Biology • Certificate in Forensic Science • Pre-Health Professions Certificate
+
+## Houston Community College							
+May 2016     
+Associates in Arts, High Honors
+
+# EXPERIENCE
+
+## Austin Child Guidance Center   
+### Administrative Assistant     
+Austin, TX		            		     
+January 2018 – December 2019    
+
+•	Check in clients for their appointment
+
+•	Answer multi-line phone system
+
+•	Clerical work, including making copies, scanning, and filing 
+
+•	Data entry and insurance billing 
+
+## Houston Health Department – Bureau of Epidemiology   
+### Intern     
+Houston, TX	     
+June 10, 2019 – August 1, 2019     
+
+•	Made phone calls of clients and conducted surveys 
+
+•	Clerical work, including making copies, filing, and faxing 
+
+•	Data Entry 
+
+## Houston Health Department - WIC Administration   
+### Intern     
+Houston, TX	    	     
+June 11, 2018 – August 2, 2018      
+
+•	Made phone calls to clients and conducted surveys
+
+•	Sorted and organized documents to be mailed out
+
+•	Conducted inventory 
+
+•	Data Entry 
+
+## Park Place Elementary   
+### Intern     
+Houston, TX 				
+August 2015 – May 2016     
+
+•	Served as teaching assistant for second grade classroom and helped manage 20 students 
+
+•	Pulled small groups for instructional interventions on all subject areas
+
+•	Assisted with daily classroom operations including proctoring tests, grading assignments, and chaperoning field trips
+
+•	Conducted clerical work for classroom organization, including making copies and transferring documents
+
+# COMMUNITY INVOLVEMENT 
+
+## We Are Blood   
+### Volunteer     
+Austin, TX	
+September 2018 – Present     
+
+•	Monitor blood donors for signs or symptoms of adverse donor reaction, alerting staff as soon as signs are recognized 
+
+•	Restock canteen supplies as needed
+
+•	Serve refreshments to donors 
+
+•	Engage donors in conversation
+
+# AFFILIATIONS 
+
+## Little Cause-Players, UT Austin 
+### Member 	
+September 2018 – December 2019
+
+## Sigma Delta Lambda Sorority Inc., UT Austin
+### Member
+May 2019 - Present      
+
+### New Member Educator Assistant       
+May 2019 – December 2019
+
+# SKILLS     
+•	Proficient in Microsoft Word, Excel, Powerpoint    
+•	Customer Service      
+•	Time management     
+
+# INTERESTS     
+•	Art     
+•	Gaming     
+
+<h3>Contact me by <a href="mailto:melodia1295@gmail.com">email</a>.</h3>

@@ -1,0 +1,275 @@
+---
+title: 'Project 2: Modeling, Testing, and Predicting'
+author: "Melody Moreno"
+date: ''
+output:
+  html_document:
+    toc: yes
+    toc_float:
+      collapsed: no
+      smooth_scroll: yes
+  pdf_document:
+    toc: yes
+---
+
+```{r setup, include=FALSE}
+library(knitr)
+hook_output = knit_hooks$get('output')
+knit_hooks$set(output = function(x, options) {
+  # this hook is used only when the linewidth option is not NULL
+  if (!is.null(n <- options$linewidth)) {
+    x = knitr:::split_lines(x)
+    # any lines wider than n should be wrapped
+    if (any(nchar(x) > n)) x = strwrap(x, width = n)
+    x = paste(x, collapse = '\n')
+  }
+  hook_output(x, options)
+})
+
+knitr::opts_chunk$set(echo = TRUE, eval = TRUE,fig.align="center",warning=FALSE,message=FALSE,fig.width=8, fig.height=5, linewidth=60)
+options(tibble.width = 100,width = 100)
+library(tidyverse)
+```
+
+# Modeling
+
+- **0. (5 pts)** Introduce your dataset and each of your variables (or just your main variables if you have lots) in a paragraph.
+```{R}
+fastfood <- readr::read_csv("https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2018/2018-09-04/fastfood_calories.csv")
+library(dplyr)
+library(tidyverse)
+fastfood<-fastfood%>%na.omit
+```
+
+The fastfood dataset includes nutritional facts from 7 different fast food restaurants (Mcdonalds, Arbys, Taco Bell, Chick Fil-A, Sonic, Subway, and Dairy Queen). Variables include Restaurant (the 7 restaurants), item (food item), and various nutritional values including calories (# of calories), calories from fat (# of calories), total fat (g), saturated fat (g), trans fat (g), cholesterol (mg), sodium (mg), total carbohydrates (g), fiber (g), sugar (g), protein (g), vitamin A (% daily value), vitamin C (% daily value), and calcium (% daily value)
+
+- **1. (15 pts)** Perform a MANOVA testing whether any of your numeric variables (or a subset of them, if including them all doesn't make sense) show a mean difference across levels of one of your categorical variables (3). If they do, perform univariate ANOVAs to find response(s) showing a mean difference across groups (3), and perform post-hoc t tests to find which groups differ (3). Discuss the number of tests you have performed, calculate the probability of at least one type I error (if unadjusted), and adjust the significance level accordingly (bonferroni correction) before discussing significant differences (3). Briefly discuss assumptions and whether or not they are likely to have been met (2).
+```{R}
+#MANOVA
+man1<-manova(cbind(calories,cholesterol)~restaurant, data=fastfood)
+summary(man1)
+#Univariate ANOVAs
+summary.aov(man1)
+#Mean Differences 
+fastfood%>%group_by(restaurant)%>%summarize(mean(calories),mean(cholesterol))
+#post hoc t tests 
+pairwise.t.test(fastfood$calories,fastfood$restaurant,p.adj="none")
+pairwise.t.test(fastfood$cholesterol,fastfood$restaurant,p.adj="none")
+```
+1 MANOVA, 2 ANOVAS, and 42 t tests were conducted for a total of 45 tests. The adjusted alpha level is 0.05/45 = 0.00111.The MANOVA test and both ANOVA tests showed a significant difference in mean calories and mean cholesterol between restaurants. Results of t tests showed that, with an adjusted alpha level, Chick Fil-A and Mcdonalds, and Chick Fil-A and Sonic show a significant difference in mean calories. Mcdonalds and Subway, Mcdonalds and Arbys, and Mcdonalds and Taco Bell show a significant difference in mean cholesterol. The probability of a type one error is equal to alpha which is 0.05. Adjusted alpha is 0.00111. It is unlinkely that assumptions of MANOVA were met (normality, homogeneity, multicollinearity)
+
+- **2. (10 pts)** Perform some kind of randomization test on your data (that makes sense). This can be anything you want! State null and alternative hypotheses, perform the test, and interpret the results (7). Create a plot visualizing the null distribution and the test statistic (3).
+```{R}
+#PERMANOVA
+library(vegan)
+dists<-fastfood%>%select(sugar, protein)%>%dist()
+adonis(dists~restaurant,data=fastfood)
+
+#Observed F
+SST<- sum(dists^2)/301
+SSW<-fastfood%>%group_by(restaurant)%>%select(sugar,protein)%>%
+ do(d=dist(.[2:3],"euclidean"))%>%ungroup()%>%
+ summarize(sum(d[[1]]^2)/25 + sum(d[[2]]^2)/21+ sum(d[[3]]^2)/27+sum(d[[4]]^2)/57+sum(d[[5]]^2)/49+sum(d[[6]]^2)/96+sum(d[[7]]^2)/26)%>%pull
+F_obs<-((SST-SSW)/6)/(SSW/294)
+F_obs
+
+#Null distribution and test statistic 
+Fs<-replicate(1000,{
+new<-fastfood%>%mutate(restaurant=sample(restaurant))
+SST2<- sum(dists^2)/301
+SSW2<-new%>%group_by(restaurant)%>%select(sugar,protein)%>%
+ do(d=dist(.[2:3],"euclidean"))%>%ungroup()%>%
+ summarize(sum(d[[1]]^2)/25 + sum(d[[2]]^2)/21+ sum(d[[3]]^2)/27+sum(d[[4]]^2)/57+sum(d[[5]]^2)/49+sum(d[[6]]^2)/96+sum(d[[7]]^2)/26)%>%pull
+((SST2-SSW2)/6)/(SSW2/294)})
+
+#p value 
+mean(Fs>F_obs)
+
+{hist(Fs,prob = T); abline(v=F_obs, col="red", add=T)}
+```
+Null hypothesis: the spread of sugar and protein content does not differ between restaurants 
+Alternative hypothesis: the spread of sugar and protein content differs for at least one restaurant
+Results of the PERMANOVA test shows that there is a significant difference in the distribution of sugar and protein content between restaurants. calculated p-value = 0, observed F (5.469414) is greater than the null distribution of F 
+
+
+- **3. (35 pts)** Build a linear regression model predicting one of your response variables from at least 2 other variables, including their interaction. Mean-center any numeric variables involved in the interaction.
+
+    - Interpret the coefficient estimates (do not discuss significance) (10)
+    - Plot the regression using `ggplot()`. If your interaction is numeric by numeric, refer to code near the end of WS15 to make the plot. If you have 3 or more predictors, just chose two to plot for convenience. (7)
+    - Check assumptions of linearity, normality, and homoskedasticity either graphically or using a hypothesis test (3)
+    - Regardless, recompute regression results with robust standard errors via `coeftest(..., vcov=vcovHC(...))`. Discuss significance of results, including any changes from before/after robust SEs if applicable. (7)
+    - What proportion of the variation in the outcome does your model explain? (3)
+    - Finally, rerun the regression but without interactions (just main effects); compare this with the interaction model and the null model using a likelihood ratio test (4)
+```{R}
+#Center Means
+fastfood$trans_fat_c<-fastfood$trans_fat-mean(fastfood$trans_fat)
+fastfood$cal_fat_c<-fastfood$cal_fat-mean(fastfood$cal_fat)
+#Linear regression model
+fit<-lm(total_fat ~ trans_fat_c * cal_fat_c, data=fastfood)
+summary(fit)
+#Plot
+mean<-predict(fit,fastfood)
+ggplot(fastfood,aes(cal_fat_c,total_fat))+geom_point()+geom_line(data=fastfood,aes(y=mean))
+#Assumptions
+library(lmtest)
+library(sandwich)
+bptest(fit)
+resids<-fit$residuals
+fitvals<-fit$fitted.values
+ggplot()+geom_point(aes(fitvals,resids))+geom_hline(yintercept=0, color='red')
+ggplot()+geom_histogram(aes(resids), bins=20)
+ks.test(resids, "pnorm", mean=0, sd(resids))
+
+#robust standard errors 
+summary(fit)$coef[,1:2]
+coeftest(fit, vcov = vcovHC(fit))[,1:2]
+
+#Proportion of variation explained by model
+(sum((fastfood$total_fat-mean(fastfood$total_fat))^2)-sum(fit$residuals^2))/sum((fastfood$total_fat-mean(fastfood$total_fat))^2)
+
+#Main effects 
+fit2<-lm(total_fat ~ trans_fat_c + cal_fat_c, data=fastfood)
+summary(fit2)
+
+#null model
+nullfit<-lm(total_fat ~ trans_fat_c, data=fastfood)
+summary(nullfit)
+
+
+#Likelihood ratio test
+anova(nullfit,fit2,fit,test="LRT")
+```
+when trans fat and calories from fat are 0, total fat is  2.551e+01 grams. For every gram of trans fat, total fat increases by 1.005e-01 grams. For every calorie from fat, total fat increases by 1.098e-01 grams. For every gram of trans and calorie from fat, total fat increases by 5.115e-04 grams (interaction). Assumptions of linearity, normality, and homoskedasticity were not met according to graphs/hypothesis tests. Robust standard errors overall greater than original standard errors. THe model explains 0.9986048 of variation. Likelihood ratio test shows the interaction model and the model without the interaction are both significant, but the interaction model is better. 
+
+- **4. (5 pts)** Rerun same regression model (with interaction), but this time compute bootstrapped standard errors. Discuss any changes you observe in SEs and p-values using these SEs compared to the original SEs and the robust SEs)
+
+```{R}
+samp_distn<-replicate(5000, {
+ boot_dat<-fastfood[sample(nrow(fastfood),replace=TRUE),]
+ fit3<-lm(total_fat ~ trans_fat_c * cal_fat_c,data=boot_dat)
+ coef(fit3)
+})
+samp_distn%>%t%>%as.data.frame%>%summarize_all(sd)
+```
+Bootstrapped standard errors are greater than original standard errors but less than robust SEs
+
+- **5. (40 pts)** Perform a logistic regression predicting a binary categorical variable (if you don't have one, make/get one) from at least two explanatory variables (interaction not necessary). 
+
+    - Interpret coefficient estimates in context (10)
+    - Report a confusion matrix for your logistic regression (2)
+    - Compute and discuss the Accuracy, Sensitivity (TPR), Specificity (TNR), and Recall (PPV) of your model (5)
+    - Using ggplot, plot density of log-odds (logit) by your binary outcome variable (3)
+    - Generate an ROC curve (plot) and calculate AUC (either manually or with a package); interpret (10)
+    - Perform 10-fold (or repeated random sub-sampling) CV and report average out-of-sample Accuracy, Sensitivity, and Recall (10)
+
+```{R}
+#logistic regression
+fastfood$cals<-ifelse(fastfood$calories>500,1,0)
+fit4<-glm(cals~sugar+restaurant,data=fastfood,family=binomial(link="logit"))
+coeftest(fit4)
+#coefficients
+exp(coef(fit4))
+#confusion matrix 
+fastfood$predicted<-predict(fit4, data=fastfood, type = "response")
+table(predict=as.numeric(fastfood$predicted>.5),truth=fastfood$cals)%>%addmargins
+
+#accuracy
+(116+110)/301
+
+#sensitivity 
+110/144
+
+#specificity
+116/150
+
+#PPV
+110/151
+
+#plot
+library(plotROC)
+ggplot(fastfood,aes(sugar,predicted,color=restaurant))+geom_line()
+
+ROCplot<-ggplot(fastfood)+geom_roc(aes(d=cals,m=predicted), n.cuts=0)+
+ geom_segment(aes(x=0,xend=1,y=0,yend=1),lty=2)
+ROCplot
+
+#AUC
+calc_auc(ROCplot)
+
+##CV
+class_diag<-function(probs,truth){
+
+tab<-table(factor(probs>.5,levels=c("FALSE","TRUE")),truth)
+acc=sum(diag(tab))/sum(tab)
+sens=tab[2,2]/colSums(tab)[2]
+spec=tab[1,1]/colSums(tab)[1]
+ppv=tab[2,2]/rowSums(tab)[2]
+
+if(is.numeric(truth)==FALSE & is.logical(truth)==FALSE) truth<-as.numeric(truth)-1
+
+ord<-order(probs, decreasing=TRUE)
+probs <- probs[ord]; truth <- truth[ord]
+
+TPR=cumsum(truth)/max(1,sum(truth)) 
+FPR=cumsum(!truth)/max(1,sum(!truth))
+
+dup<-c(probs[-1]>=probs[-length(probs)], FALSE)
+TPR<-c(0,TPR[!dup],1); FPR<-c(0,FPR[!dup],1)
+
+n <- length(TPR)
+auc<- sum( ((TPR[-1]+TPR[-n])/2) * (FPR[-1]-FPR[-n]) )
+
+data.frame(acc,sens,spec,ppv,auc)
+}
+
+set.seed(1234)
+k=10
+
+data1<-fastfood[sample(nrow(fastfood)),]
+folds<-cut(seq(1:nrow(fastfood)),breaks=k,labels=F)
+
+diags<-NULL
+for(i in 1:k){
+train<-data1[folds!=i,]
+test<-data1[folds==i,]
+truth<-test$cals
+fit6<- glm(cals~sugar+restaurant,data=train,family=binomial(link="logit"))
+probs<- predict(fit6, newdata=test, type="response")
+diags<-rbind(diags,class_diag(probs,truth))}
+
+apply(diags,2,mean)
+```
+when sugar and cal fat are 0, the predicted probability of calories being greater than 500 is 34.37543%. For every gram of sugar the probability of calories being greater than 500 increases by 1.64689%. For every cal fat, the predicted probability of calories being greater than 500 increases by 0.17011%. Accuracy was 0.7508306 (correctly classified proportion), sensitivity was 0.7638889 (proportion of 1 cases that were classified correctly), specificity was 0.7733333 (proportion of 0 cases that were classified correctly), and recall was 0.7284768 (predicted 1s that were actually 1s). AUC is 0.8110403 meaning restaurant and sugar content are good (greater than 0.8) predictors of whether a food item contains more than 500 calories. Results of the 10-fold CV showed accuracy of 0.7468817, sensitivity of 0.7532425, and recall of 0.7334141. 	
+
+- **6. (10 pts)** Choose one variable you want to predict (can be one you used from before; either binary or continuous) and run a LASSO regression inputting all the rest of your variables as predictors. Choose lambda to give the simplest model whose accuracy is near that of the best (i.e., `lambda.1se`). Discuss which variables are retained. Perform 10-fold CV using this model: if response in binary, compare model's out-of-sample accuracy to that of your logistic regression in part 5; if response is numeric, compare the residual standard error (at the bottom of the summary output, aka RMSE): lower is better fit!
+
+```{R}
+library(glmnet)
+y<-as.matrix(fastfood$cals)
+x<-fastfood%>%dplyr::select(-cals,-restaurant,-item,-salad,-predicted,-X1)%>%mutate_all(scale)%>%as.matrix
+cv<-cv.glmnet(x,y)
+cv<-cv.glmnet(x,y,family="binomial")
+lasso<-glmnet(x,y,family="binomial",lambda=cv$lambda.1se)
+coef(lasso)
+
+set.seed(1234)
+k=10
+
+data1<-fastfood[sample(nrow(fastfood)),]
+folds<-cut(seq(1:nrow(fastfood)),breaks=k,labels=F)
+
+diags2<-NULL
+for(i in 1:k){
+train2<-data1[folds!=i,]
+test2<-data1[folds==i,]
+truth2<-test$cals
+fit7<- glm(cals~calories+total_fat+sat_fat+trans_fat+cholesterol+fiber+vit_a+trans_fat_c,data=train,family=binomial(link="logit"))
+probs2<- predict(fit7, newdata=test, type="response")
+diags2<-rbind(diags2,class_diag(probs2,truth2))}
+
+apply(diags2,2,mean)
+
+```
+categorical variables were excluded from the lasso. calories, total_fat, sat_fat, trans_fat, cholesterol, fiber, vit_a, and trans_fat_c were retained. AUC is 1, meaning the retained predictor variables are excellent predictors of whether there is more than 500 calories in a food item. 
+
+

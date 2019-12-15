@@ -1,0 +1,135 @@
+---
+title: 'Project 1: Exploratory Data Analysis'
+author: "Melody Moreno mmm6969"
+date: "9/16/2019"
+output:
+  html_document:
+    toc: yes
+    toc_float:
+      collapsed: no
+      smooth_scroll: yes
+  pdf_document:
+    toc: yes
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+### EDA Project
+
+## Data
+
+Both data sets were retrieved from github. The tv_ratings dataset includes a title ID, season number, title of the TV show, date the show was first aired, average rating, share, and genres. The movie_profit dataset includes the name of the movie, studio, the production budget, the domestic revenue (USA), worldwide revenue, distributor of the film, MPAA rating, and genre. I selected these because of my interest in TV and film. 
+
+```{R}
+tv_ratings <- readr::read_csv("https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2019/2019-01-08/IMDb_Economist_tv_ratings.csv")
+movie_profit <- readr::read_csv("https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2018/2018-10-23/movie_profit.csv")
+
+library(tidyverse)
+library(dplyr)
+```
+
+
+## Tidying
+
+na.omit was used to remove all NAs from the movie_profit and tv_ratings datasets, and then pivot wider was used to untidy the data and create a column for every genre. pivot_longer was used to tidy the data and combine all of the genre columns back into a single column, and then NAs were omitted. 
+```{R}
+glimpse(movie_profit<-movie_profit%>%na.omit)
+
+glimpse(movie_profit2<-pivot_wider(movie_profit, names_from = genre,values_from = distributor))
+
+glimpse(movie_profit2%>%pivot_longer(8:12,names_to = "genre", values_to = "distributor")%>%na.omit)
+
+glimpse(tv_ratings<-tv_ratings%>%na.omit%>%rename(tv_show=title))
+```
+
+##Joining 
+
+Inner join was used to combine the two datasets by date into a single dataset (movie_tv). The formating of the dates in the tv_ratings dataset was changed to match the format in the movie_profit dataset. Inner_join was used because I wanted merge the release date and date columns on the two datasets and also drop all rows that contain NAs. 3110 cases were removed from the movie_profit dataset and 2140 cases were removed from the tv_ratings dataset. However, a potential problem with this is that it significantly decreased the total number of cases in the dataset and limits the amount of data that can be used for analyses. 
+```{R}
+tv_ratings$date<-format(tv_ratings$date, "%m/%d/%Y")
+movie_tv<-movie_profit%>%inner_join(tv_ratings, by=c("release_date"="date"))
+```
+
+## dplyr functions and summary statistics
+
+
+```{R}
+# Filter
+glimpse(movie_tv%>%filter(mpaa_rating=="R"))
+
+# Select
+glimpse(movie_tv%>%select(release_date,movie,tv_show))
+
+# Arrange
+glimpse(movie_tv%>%arrange(release_date))
+
+# Group by
+glimpse(movie_tv%>%group_by(genre)%>%summarize(mean_production_budget=mean(production_budget)))
+
+# Mutate 
+glimpse(movie_tv%>%mutate(domestic_gross_rank=percent_rank(domestic_gross)))
+```
+    
+Summarise was used to generate the mean, standard deviation, variance, IQR, minimum, maximum, median, number of distinct cases, first value, and last values of the production_budget, domestic_gross, worldwide_gross, av_rating, and share variables. Then these summary statistics were generated for worldwide_gross when grouped by genre. Summary statistics were also calculated for production_budget when grouped by mpaa rating.
+```{R}
+# Production Budget 
+movie_tv%>%summarise(mean_pb=mean(production_budget),sd_pb=sd(production_budget),var_pb=var(production_budget),IQR_pb=IQR(production_budget),min_pb=min(production_budget),med_bp=median(production_budget),max_pb=max(production_budget),ndist_pb=n_distinct(production_budget),first_pb=first(production_budget), last_pb=last(production_budget))
+
+# Domestic Gross
+movie_tv%>%summarise(mean_dg=mean(domestic_gross),sd_dg=sd(domestic_gross),var_dg=var(domestic_gross),IQR_dg=IQR(domestic_gross),min_dg=min(domestic_gross),med_dg=median(domestic_gross),max_dg=max(domestic_gross),ndist_dg=n_distinct(domestic_gross),first_dg=first(domestic_gross),last_dg=last(domestic_gross))
+
+# Worldwide Gross
+movie_tv%>%summarise(mean_wg=mean(worldwide_gross),sd_wg=sd(worldwide_gross),var_wg=var(worldwide_gross),IQR_wg=IQR(worldwide_gross),min_wg=min(worldwide_gross),med_wg=median(worldwide_gross),max_wg=max(worldwide_gross),ndist_wg=n_distinct(worldwide_gross),first_wg=first(worldwide_gross),last_wg=last(worldwide_gross))
+
+# Average Rating
+movie_tv%>%summarise(mean_rating=mean(av_rating),sd_rating=sd(av_rating),var_rating=var(av_rating),IQR_rating=IQR(av_rating),min_rating=min(av_rating),med_rating=median(av_rating),max_rating=max(av_rating),ndist_rating=n_distinct(av_rating),first_rating=first(av_rating),last_rating=last(av_rating))
+
+# Share
+movie_tv%>%summarise(mean_share=mean(share),sd_share=sd(share),var_share=var(share),IQR_share=IQR(share),min_share=min(share),med_share=median(share),max_share=max(share),ndist_share=n_distinct(share),first_share=first(share),last_share=last(share))
+
+# Worldwide Gross grouped be Genre
+movie_tv%>%group_by(genre)%>%summarise(mean_wg=mean(worldwide_gross),sd_wg=sd(worldwide_gross),var_wg=var(worldwide_gross),IQR_wg=IQR(worldwide_gross),min_wg=min(worldwide_gross),med_wg=median(worldwide_gross),max_wg=max(worldwide_gross),ndist_wg=n_distinct(worldwide_gross),first_wg=first(worldwide_gross),last_wg=last(worldwide_gross))
+
+# Production Budget grouped by MPAA Rating
+movie_tv%>%group_by(mpaa_rating)%>%summarise(mean_pb=mean(production_budget),sd_pb=sd(production_budget),var_pb=var(production_budget),IQR_pb=IQR(production_budget),min_pb=min(production_budget),med_bp=median(production_budget),max_pb=max(production_budget),ndist_pb=n_distinct(production_budget),first_pb=first(production_budget),last_pb=last(production_budget))
+```
+ 
+## Visualizations
+
+A scatterplot was generated with production budget as the x value and worldwide gross as the y value, and then faceted by mpaa rating. The plots generally show that as production budget increases, worldwide gross increases for PG, PG-13, and R rated movies. Only one case had an mpaa rating of G and therefore there was not enough data to determine any trends.     
+```{R}
+library(ggplot2)
+ggplot(movie_tv, aes(movie_tv$production_budget,movie_tv$worldwide_gross, color=movie_tv$mpaa_rating))+geom_point(stat="summary", fun.y="mean")+xlab("Production Budget")+ylab("Average Worldwide Gross")+ggtitle("Average Worldwide Gross by Production Budget and MPAA Rating")+facet_wrap(~movie_tv$mpaa_rating)+theme_dark()+theme(legend.position="none")
+
+```
+
+A scatterplot was created using season number as the x value and average rating as the y value, and the points were colored by genres. The plot shows that av_rating increases as season number increases until around the 5th season, then the plot shows a decrease in av_rating. There appears to be no significant relationship between ratings and genres 
+```{R}
+ggplot(movie_tv, aes(x = movie_tv$seasonNumber, y=movie_tv$av_rating, color=movie_tv$genres))+geom_point()+theme(legend.position="none")+xlab("Season Number")+ylab("Rating")+ggtitle("Ratings by Season Number")+scale_x_continuous(breaks = c(1, 2, 3, 4, 5, 6, 7, 8, 9, 10))
+
+```
+
+
+## Clustering
+
+The data shows mean domestic gross by production budget clustered by mpaa rating (4 clusters, 1 per rating). The means show an increase from G rating, to R, to PG-13, and then to PG. 
+
+```{R}
+# selecting variables for clustering
+clust_data<-movie_tv%>%dplyr::select(production_budget,domestic_gross,mpaa_rating)
+
+#assigning values to cluster and calculating means 
+cent<-movie_tv%>%mutate(cluster=sample(c('1','2','3','4'),120,replace=T))%>%
+  group_by(as.factor(mpaa_rating))%>%summarize(production_budget=mean(production_budget),domestic_gross=mean(domestic_gross))
+
+mov<-movie_tv%>%mutate(dist1=sqrt((production_budget-cent$production_budget[1])^2+(domestic_gross-cent$domestic_gross[1])^2),dist2=sqrt((production_budget-cent$production_budget[2])^2+(domestic_gross-cent$domestic_gross[2])^2),dist3=sqrt((production_budget-cent$production_budget[3])^2+(domestic_gross-cent$domestic_gross[3])^2), dist4=sqrt((production_budget-cent$production_budget[4]^2+domestic_gross-cent$domestic_gross[4]^2)))%>%rowwise()%>%mutate(cluster=as.factor(which.min(c(dist1,dist2,dist3,dist4))))
+
+# generating plot 
+ggplot(mov)+geom_point(aes(production_budget, domestic_gross,color=as.factor(mpaa_rating)))+
+  geom_point(data=cent,aes(production_budget,domestic_gross),size=5)+ggtitle("Domestic Gross by Production Budget")+xlab("Production Budget")+ylab("Domestic Gross")
+
+```
+
+  

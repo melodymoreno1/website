@@ -1,0 +1,471 @@
+---
+title: 'Project 2: Modeling, Testing, and Predicting'
+author: "Melody Moreno"
+date: ''
+output:
+  html_document:
+    toc: yes
+    toc_float:
+      collapsed: no
+      smooth_scroll: yes
+  pdf_document:
+    toc: yes
+---
+
+
+
+<div id="modeling" class="section level1">
+<h1>Modeling</h1>
+<ul>
+<li><strong>0. (5 pts)</strong> Introduce your dataset and each of your variables (or just your main variables if you have lots) in a paragraph.</li>
+</ul>
+<pre class="r"><code>fastfood &lt;- readr::read_csv(&quot;https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2018/2018-09-04/fastfood_calories.csv&quot;)
+library(dplyr)
+library(tidyverse)
+fastfood&lt;-fastfood%&gt;%na.omit</code></pre>
+<p>The fastfood dataset includes nutritional facts from 7 different fast food restaurants (Mcdonalds, Arbys, Taco Bell, Chick Fil-A, Sonic, Subway, and Dairy Queen). Variables include Restaurant (the 7 restaurants), item (food item), and various nutritional values including calories (# of calories), calories from fat (# of calories), total fat (g), saturated fat (g), trans fat (g), cholesterol (mg), sodium (mg), total carbohydrates (g), fiber (g), sugar (g), protein (g), vitamin A (% daily value), vitamin C (% daily value), and calcium (% daily value)</p>
+<ul>
+<li><strong>1. (15 pts)</strong> Perform a MANOVA testing whether any of your numeric variables (or a subset of them, if including them all doesn’t make sense) show a mean difference across levels of one of your categorical variables (3). If they do, perform univariate ANOVAs to find response(s) showing a mean difference across groups (3), and perform post-hoc t tests to find which groups differ (3). Discuss the number of tests you have performed, calculate the probability of at least one type I error (if unadjusted), and adjust the significance level accordingly (bonferroni correction) before discussing significant differences (3). Briefly discuss assumptions and whether or not they are likely to have been met (2).</li>
+</ul>
+<pre class="r"><code>#MANOVA
+man1&lt;-manova(cbind(calories,cholesterol)~restaurant, data=fastfood)
+summary(man1)</code></pre>
+<pre><code>## Df Pillai approx F num Df den Df Pr(&gt;F)
+## restaurant 6 0.26499 7.484 12 588 6.266e-13 ***
+## Residuals 294
+## ---
+## Signif. codes: 0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1
+&#39; &#39; 1</code></pre>
+<pre class="r"><code>#Univariate ANOVAs
+summary.aov(man1)</code></pre>
+<pre><code>## Response calories :
+## Df Sum Sq Mean Sq F value Pr(&gt;F)
+## restaurant 6 2141568 356928 4.2757 0.0003779 ***
+## Residuals 294 24542341 83477
+## ---
+## Signif. codes: 0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1
+&#39; &#39; 1
+##
+## Response cholesterol :
+## Df Sum Sq Mean Sq F value Pr(&gt;F)
+## restaurant 6 117458 19576.3 7.3423 2.499e-07 ***
+## Residuals 294 783876 2666.2
+## ---
+## Signif. codes: 0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1
+&#39; &#39; 1</code></pre>
+<pre class="r"><code>#Mean Differences 
+fastfood%&gt;%group_by(restaurant)%&gt;%summarize(mean(calories),mean(cholesterol))</code></pre>
+<pre><code>## # A tibble: 7 x 3
+##   restaurant  `mean(calories)` `mean(cholesterol)`
+##   &lt;chr&gt;                  &lt;dbl&gt;               &lt;dbl&gt;
+## 1 Arbys                   486                 61.4
+## 2 Chick Fil-A             318.                67.9
+## 3 Dairy Queen             519.                72.8
+## 4 Mcdonalds               640.               110. 
+## 5 Sonic                   620                 87.7
+## 6 Subway                  503.                61.3
+## 7 Taco Bell               524.                49.4</code></pre>
+<pre class="r"><code>#post hoc t tests 
+pairwise.t.test(fastfood$calories,fastfood$restaurant,p.adj=&quot;none&quot;)</code></pre>
+<pre><code>##
+## Pairwise comparisons using t tests with pooled SD
+##
+## data: fastfood$calories and fastfood$restaurant
+##
+## Arbys Chick Fil-A Dairy Queen Mcdonalds Sonic Subway
+## Chick Fil-A 0.0506 - - - - -
+## Dairy Queen 0.6786 0.0173 - - - -
+## Mcdonalds 0.0267 1.7e-05 0.0738 - - -
+## Sonic 0.0601 7.8e-05 0.1468 0.7179 - -
+## Subway 0.7932 0.0083 0.7966 0.0048 0.0218 -
+## Taco Bell 0.6404 0.0158 0.9540 0.0895 0.1712 0.7446
+##
+## P value adjustment method: none</code></pre>
+<pre class="r"><code>pairwise.t.test(fastfood$cholesterol,fastfood$restaurant,p.adj=&quot;none&quot;)</code></pre>
+<pre><code>##
+## Pairwise comparisons using t tests with pooled SD
+##
+## data: fastfood$cholesterol and fastfood$restaurant
+##
+## Arbys Chick Fil-A Dairy Queen Mcdonalds Sonic Subway
+## Chick Fil-A 0.67299 - - - - -
+## Dairy Queen 0.42790 0.74351 - - - -
+## Mcdonalds 0.00012 0.00164 0.00239 - - -
+## Sonic 0.03946 0.14266 0.23035 0.02892 - -
+## Subway 0.99327 0.59862 0.30846 4.7e-08 0.00393 -
+## Taco Bell 0.40830 0.22466 0.10081 1.3e-06 0.00249
+0.29893
+##
+## P value adjustment method: none</code></pre>
+<p>1 MANOVA, 2 ANOVAS, and 42 t tests were conducted for a total of 45 tests. The adjusted alpha level is 0.05/45 = 0.00111.The MANOVA test and both ANOVA tests showed a significant difference in mean calories and mean cholesterol between restaurants. Results of t tests showed that, with an adjusted alpha level, Chick Fil-A and Mcdonalds, and Chick Fil-A and Sonic show a significant difference in mean calories. Mcdonalds and Subway, Mcdonalds and Arbys, and Mcdonalds and Taco Bell show a significant difference in mean cholesterol. The probability of a type one error is equal to alpha which is 0.05. Adjusted alpha is 0.00111. It is unlinkely that assumptions of MANOVA were met (normality, homogeneity, multicollinearity)</p>
+<ul>
+<li><strong>2. (10 pts)</strong> Perform some kind of randomization test on your data (that makes sense). This can be anything you want! State null and alternative hypotheses, perform the test, and interpret the results (7). Create a plot visualizing the null distribution and the test statistic (3).</li>
+</ul>
+<pre class="r"><code>#PERMANOVA
+library(vegan)
+dists&lt;-fastfood%&gt;%select(sugar, protein)%&gt;%dist()
+adonis(dists~restaurant,data=fastfood)</code></pre>
+<pre><code>##
+## Call:
+## adonis(formula = dists ~ restaurant, data = fastfood)
+##
+## Permutation: free
+## Number of permutations: 999
+##
+## Terms added sequentially (first to last)
+##
+## Df SumsOfSqs MeanSqs F.Model R2 Pr(&gt;F)
+## restaurant 6 12006 2000.98 5.4694 0.10041 0.001 ***
+## Residuals 294 107559 365.85 0.89959
+## Total 300 119565 1.00000
+## ---
+## Signif. codes: 0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1
+&#39; &#39; 1</code></pre>
+<pre class="r"><code>#Observed F
+SST&lt;- sum(dists^2)/301
+SSW&lt;-fastfood%&gt;%group_by(restaurant)%&gt;%select(sugar,protein)%&gt;%
+ do(d=dist(.[2:3],&quot;euclidean&quot;))%&gt;%ungroup()%&gt;%
+ summarize(sum(d[[1]]^2)/25 + sum(d[[2]]^2)/21+ sum(d[[3]]^2)/27+sum(d[[4]]^2)/57+sum(d[[5]]^2)/49+sum(d[[6]]^2)/96+sum(d[[7]]^2)/26)%&gt;%pull
+F_obs&lt;-((SST-SSW)/6)/(SSW/294)
+F_obs</code></pre>
+<pre><code>## [1] 5.469414</code></pre>
+<pre class="r"><code>#Null distribution and test statistic 
+Fs&lt;-replicate(1000,{
+new&lt;-fastfood%&gt;%mutate(restaurant=sample(restaurant))
+SST2&lt;- sum(dists^2)/301
+SSW2&lt;-new%&gt;%group_by(restaurant)%&gt;%select(sugar,protein)%&gt;%
+ do(d=dist(.[2:3],&quot;euclidean&quot;))%&gt;%ungroup()%&gt;%
+ summarize(sum(d[[1]]^2)/25 + sum(d[[2]]^2)/21+ sum(d[[3]]^2)/27+sum(d[[4]]^2)/57+sum(d[[5]]^2)/49+sum(d[[6]]^2)/96+sum(d[[7]]^2)/26)%&gt;%pull
+((SST2-SSW2)/6)/(SSW2/294)})
+
+#p value 
+mean(Fs&gt;F_obs)</code></pre>
+<pre><code>## [1] 0</code></pre>
+<pre class="r"><code>{hist(Fs,prob = T); abline(v=F_obs, col=&quot;red&quot;, add=T)}</code></pre>
+<p><img src="/Project2_files/figure-html/unnamed-chunk-3-1.png" width="768" style="display: block; margin: auto;" />
+Null hypothesis: the spread of sugar and protein content does not differ between restaurants
+Alternative hypothesis: the spread of sugar and protein content differs for at least one restaurant
+Results of the PERMANOVA test shows that there is a significant difference in the distribution of sugar and protein content between restaurants. calculated p-value = 0, observed F (5.469414) is greater than the null distribution of F</p>
+<ul>
+<li><p><strong>3. (35 pts)</strong> Build a linear regression model predicting one of your response variables from at least 2 other variables, including their interaction. Mean-center any numeric variables involved in the interaction.</p>
+<ul>
+<li>Interpret the coefficient estimates (do not discuss significance) (10)</li>
+<li>Plot the regression using <code>ggplot()</code>. If your interaction is numeric by numeric, refer to code near the end of WS15 to make the plot. If you have 3 or more predictors, just chose two to plot for convenience. (7)</li>
+<li>Check assumptions of linearity, normality, and homoskedasticity either graphically or using a hypothesis test (3)</li>
+<li>Regardless, recompute regression results with robust standard errors via <code>coeftest(..., vcov=vcovHC(...))</code>. Discuss significance of results, including any changes from before/after robust SEs if applicable. (7)</li>
+<li>What proportion of the variation in the outcome does your model explain? (3)</li>
+<li>Finally, rerun the regression but without interactions (just main effects); compare this with the interaction model and the null model using a likelihood ratio test (4)</li>
+</ul></li>
+</ul>
+<pre class="r"><code>#Center Means
+fastfood$trans_fat_c&lt;-fastfood$trans_fat-mean(fastfood$trans_fat)
+fastfood$cal_fat_c&lt;-fastfood$cal_fat-mean(fastfood$cal_fat)
+#Linear regression model
+fit&lt;-lm(total_fat ~ trans_fat_c * cal_fat_c, data=fastfood)
+summary(fit)</code></pre>
+<pre><code>##
+## Call:
+## lm(formula = total_fat ~ trans_fat_c * cal_fat_c, data =
+fastfood)
+##
+## Residuals:
+## Min 1Q Median 3Q Max
+## -6.2517 -0.2778 -0.0013 0.3480 1.6613
+##
+## Coefficients:
+## Estimate Std. Error t value Pr(&gt;|t|)
+## (Intercept) 2.551e+01 4.430e-02 575.868 &lt;2e-16 ***
+## trans_fat_c 1.005e-01 8.064e-02 1.246 0.2138
+## cal_fat_c 1.098e-01 3.116e-04 352.314 &lt;2e-16 ***
+## trans_fat_c:cal_fat_c 5.115e-04 2.240e-04 2.284 0.0231 *
+## ---
+## Signif. codes: 0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1
+&#39; &#39; 1
+##
+## Residual standard error: 0.6979 on 297 degrees of
+freedom
+## Multiple R-squared: 0.9986, Adjusted R-squared: 0.9986
+## F-statistic: 7.086e+04 on 3 and 297 DF, p-value: &lt;
+2.2e-16</code></pre>
+<pre class="r"><code>#Plot
+mean&lt;-predict(fit,fastfood)
+ggplot(fastfood,aes(cal_fat_c,total_fat))+geom_point()+geom_line(data=fastfood,aes(y=mean))</code></pre>
+<p><img src="/Project2_files/figure-html/unnamed-chunk-4-1.png" width="768" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>#Assumptions
+library(lmtest)
+library(sandwich)
+bptest(fit)</code></pre>
+<pre><code>## 
+##  studentized Breusch-Pagan test
+## 
+## data:  fit
+## BP = 19.873, df = 3, p-value = 0.0001804</code></pre>
+<pre class="r"><code>resids&lt;-fit$residuals
+fitvals&lt;-fit$fitted.values
+ggplot()+geom_point(aes(fitvals,resids))+geom_hline(yintercept=0, color=&#39;red&#39;)</code></pre>
+<p><img src="/Project2_files/figure-html/unnamed-chunk-4-2.png" width="768" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>ggplot()+geom_histogram(aes(resids), bins=20)</code></pre>
+<p><img src="/Project2_files/figure-html/unnamed-chunk-4-3.png" width="768" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>ks.test(resids, &quot;pnorm&quot;, mean=0, sd(resids))</code></pre>
+<pre><code>## 
+##  One-sample Kolmogorov-Smirnov test
+## 
+## data:  resids
+## D = 0.11368, p-value = 0.0008364
+## alternative hypothesis: two-sided</code></pre>
+<pre class="r"><code>#robust standard errors 
+summary(fit)$coef[,1:2]</code></pre>
+<pre><code>##                           Estimate   Std. Error
+## (Intercept)           2.551243e+01 0.0443025762
+## trans_fat_c           1.004714e-01 0.0806376798
+## cal_fat_c             1.097979e-01 0.0003116480
+## trans_fat_c:cal_fat_c 5.115226e-04 0.0002239568</code></pre>
+<pre class="r"><code>coeftest(fit, vcov = vcovHC(fit))[,1:2]</code></pre>
+<pre><code>##                           Estimate   Std. Error
+## (Intercept)           2.551243e+01 0.0534052970
+## trans_fat_c           1.004714e-01 0.0919474901
+## cal_fat_c             1.097979e-01 0.0007031423
+## trans_fat_c:cal_fat_c 5.115226e-04 0.0002561634</code></pre>
+<pre class="r"><code>#Proportion of variation explained by model
+(sum((fastfood$total_fat-mean(fastfood$total_fat))^2)-sum(fit$residuals^2))/sum((fastfood$total_fat-mean(fastfood$total_fat))^2)</code></pre>
+<pre><code>## [1] 0.9986048</code></pre>
+<pre class="r"><code>#Main effects 
+fit2&lt;-lm(total_fat ~ trans_fat_c + cal_fat_c, data=fastfood)
+summary(fit2)</code></pre>
+<pre><code>##
+## Call:
+## lm(formula = total_fat ~ trans_fat_c + cal_fat_c, data =
+fastfood)
+##
+## Residuals:
+## Min 1Q Median 3Q Max
+## -6.3788 -0.2275 0.0126 0.3763 1.6025
+##
+## Coefficients:
+## Estimate Std. Error t value Pr(&gt;|t|)
+## (Intercept) 2.555e+01 4.051e-02 630.80 &lt; 2e-16 ***
+## trans_fat_c 2.072e-01 6.619e-02 3.13 0.00192 **
+## cal_fat_c 1.099e-01 3.102e-04 354.34 &lt; 2e-16 ***
+## ---
+## Signif. codes: 0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1
+&#39; &#39; 1
+##
+## Residual standard error: 0.7028 on 298 degrees of
+freedom
+## Multiple R-squared: 0.9986, Adjusted R-squared: 0.9986
+## F-statistic: 1.048e+05 on 2 and 298 DF, p-value: &lt;
+2.2e-16</code></pre>
+<pre class="r"><code>#null model
+nullfit&lt;-lm(total_fat ~ trans_fat_c, data=fastfood)
+summary(nullfit)</code></pre>
+<pre><code>##
+## Call:
+## lm(formula = total_fat ~ trans_fat_c, data = fastfood)
+##
+## Residuals:
+## Min 1Q Median 3Q Max
+## -19.692 -9.757 -2.496 7.243 92.373
+##
+## Coefficients:
+## Estimate Std. Error t value Pr(&gt;|t|)
+## (Intercept) 25.5548 0.8312 30.75 &lt;2e-16 ***
+## trans_fat_c 14.9346 1.0569 14.13 &lt;2e-16 ***
+## ---
+## Signif. codes: 0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1
+&#39; &#39; 1
+##
+## Residual standard error: 14.42 on 299 degrees of freedom
+## Multiple R-squared: 0.4004, Adjusted R-squared: 0.3984
+## F-statistic: 199.7 on 1 and 299 DF, p-value: &lt; 2.2e-16</code></pre>
+<pre class="r"><code>#Likelihood ratio test
+anova(nullfit,fit2,fit,test=&quot;LRT&quot;)</code></pre>
+<pre><code>## Analysis of Variance Table
+##
+## Model 1: total_fat ~ trans_fat_c
+## Model 2: total_fat ~ trans_fat_c + cal_fat_c
+## Model 3: total_fat ~ trans_fat_c * cal_fat_c
+## Res.Df RSS Df Sum of Sq Pr(&gt;Chi)
+## 1 299 62172
+## 2 298 147 1 62025 &lt; 2e-16 ***
+## 3 297 145 1 3 0.02237 *
+## ---
+## Signif. codes: 0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1
+&#39; &#39; 1</code></pre>
+<p>when trans fat and calories from fat are 0, total fat is 2.551e+01 grams. For every gram of trans fat, total fat increases by 1.005e-01 grams. For every calorie from fat, total fat increases by 1.098e-01 grams. For every gram of trans and calorie from fat, total fat increases by 5.115e-04 grams (interaction). Assumptions of linearity, normality, and homoskedasticity were not met according to graphs/hypothesis tests. Robust standard errors overall greater than original standard errors. THe model explains 0.9986048 of variation. Likelihood ratio test shows the interaction model and the model without the interaction are both significant, but the interaction model is better.</p>
+<ul>
+<li><strong>4. (5 pts)</strong> Rerun same regression model (with interaction), but this time compute bootstrapped standard errors. Discuss any changes you observe in SEs and p-values using these SEs compared to the original SEs and the robust SEs)</li>
+</ul>
+<pre class="r"><code>samp_distn&lt;-replicate(5000, {
+ boot_dat&lt;-fastfood[sample(nrow(fastfood),replace=TRUE),]
+ fit3&lt;-lm(total_fat ~ trans_fat_c * cal_fat_c,data=boot_dat)
+ coef(fit3)
+})
+samp_distn%&gt;%t%&gt;%as.data.frame%&gt;%summarize_all(sd)</code></pre>
+<pre><code>## (Intercept) trans_fat_c cal_fat_c trans_fat_c:cal_fat_c
+## 1 0.05166219 0.09232584 0.0006785356 0.000255268</code></pre>
+<p>Bootstrapped standard errors are greater than original standard errors but less than robust SEs</p>
+<ul>
+<li><p><strong>5. (40 pts)</strong> Perform a logistic regression predicting a binary categorical variable (if you don’t have one, make/get one) from at least two explanatory variables (interaction not necessary).</p>
+<ul>
+<li>Interpret coefficient estimates in context (10)</li>
+<li>Report a confusion matrix for your logistic regression (2)</li>
+<li>Compute and discuss the Accuracy, Sensitivity (TPR), Specificity (TNR), and Recall (PPV) of your model (5)</li>
+<li>Using ggplot, plot density of log-odds (logit) by your binary outcome variable (3)</li>
+<li>Generate an ROC curve (plot) and calculate AUC (either manually or with a package); interpret (10)</li>
+<li>Perform 10-fold (or repeated random sub-sampling) CV and report average out-of-sample Accuracy, Sensitivity, and Recall (10)</li>
+</ul></li>
+</ul>
+<pre class="r"><code>#logistic regression
+fastfood$cals&lt;-ifelse(fastfood$calories&gt;500,1,0)
+fit4&lt;-glm(cals~sugar+restaurant,data=fastfood,family=binomial(link=&quot;logit&quot;))
+coeftest(fit4)</code></pre>
+<pre><code>##
+## z test of coefficients:
+##
+## Estimate Std. Error z value Pr(&gt;|z|)
+## (Intercept) -1.688664 0.505474 -3.3408 0.0008355 ***
+## sugar 0.238511 0.035679 6.6850 2.31e-11 ***
+## restaurantChick Fil-A -2.479844 1.146031 -2.1639
+0.0304756 *
+## restaurantDairy Queen 0.025523 0.618327 0.0413 0.9670742
+## restaurantMcdonalds 0.189799 0.560211 0.3388 0.7347606
+## restaurantSonic 0.357863 0.551447 0.6490 0.5163689
+## restaurantSubway -0.991981 0.530796 -1.8689 0.0616429 .
+## restaurantTaco Bell 1.047979 0.614183 1.7063 0.0879527 .
+## ---
+## Signif. codes: 0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1
+&#39; &#39; 1</code></pre>
+<pre class="r"><code>#coefficients
+exp(coef(fit4))</code></pre>
+<pre><code>## (Intercept) sugar restaurantChick Fil-A restaurantDairy
+Queen
+## 0.18476626 1.26935726 0.08375633 1.02585184
+## restaurantMcdonalds restaurantSonic restaurantSubway
+restaurantTaco Bell
+## 1.20900692 1.43026929 0.37084139 2.85188232</code></pre>
+<pre class="r"><code>#confusion matrix 
+fastfood$predicted&lt;-predict(fit4, data=fastfood, type = &quot;response&quot;)
+table(predict=as.numeric(fastfood$predicted&gt;.5),truth=fastfood$cals)%&gt;%addmargins</code></pre>
+<pre><code>##        truth
+## predict   0   1 Sum
+##     0   116  34 150
+##     1    41 110 151
+##     Sum 157 144 301</code></pre>
+<pre class="r"><code>#accuracy
+(116+110)/301</code></pre>
+<pre><code>## [1] 0.7508306</code></pre>
+<pre class="r"><code>#sensitivity 
+110/144</code></pre>
+<pre><code>## [1] 0.7638889</code></pre>
+<pre class="r"><code>#specificity
+116/150</code></pre>
+<pre><code>## [1] 0.7733333</code></pre>
+<pre class="r"><code>#PPV
+110/151</code></pre>
+<pre><code>## [1] 0.7284768</code></pre>
+<pre class="r"><code>#plot
+library(plotROC)
+ggplot(fastfood,aes(sugar,predicted,color=restaurant))+geom_line()</code></pre>
+<p><img src="/Project2_files/figure-html/unnamed-chunk-6-1.png" width="768" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>ROCplot&lt;-ggplot(fastfood)+geom_roc(aes(d=cals,m=predicted), n.cuts=0)+
+ geom_segment(aes(x=0,xend=1,y=0,yend=1),lty=2)
+ROCplot</code></pre>
+<p><img src="/Project2_files/figure-html/unnamed-chunk-6-2.png" width="768" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>#AUC
+calc_auc(ROCplot)</code></pre>
+<pre><code>##   PANEL group       AUC
+## 1     1    -1 0.8110403</code></pre>
+<pre class="r"><code>##CV
+class_diag&lt;-function(probs,truth){
+
+tab&lt;-table(factor(probs&gt;.5,levels=c(&quot;FALSE&quot;,&quot;TRUE&quot;)),truth)
+acc=sum(diag(tab))/sum(tab)
+sens=tab[2,2]/colSums(tab)[2]
+spec=tab[1,1]/colSums(tab)[1]
+ppv=tab[2,2]/rowSums(tab)[2]
+
+if(is.numeric(truth)==FALSE &amp; is.logical(truth)==FALSE) truth&lt;-as.numeric(truth)-1
+
+ord&lt;-order(probs, decreasing=TRUE)
+probs &lt;- probs[ord]; truth &lt;- truth[ord]
+
+TPR=cumsum(truth)/max(1,sum(truth)) 
+FPR=cumsum(!truth)/max(1,sum(!truth))
+
+dup&lt;-c(probs[-1]&gt;=probs[-length(probs)], FALSE)
+TPR&lt;-c(0,TPR[!dup],1); FPR&lt;-c(0,FPR[!dup],1)
+
+n &lt;- length(TPR)
+auc&lt;- sum( ((TPR[-1]+TPR[-n])/2) * (FPR[-1]-FPR[-n]) )
+
+data.frame(acc,sens,spec,ppv,auc)
+}
+
+set.seed(1234)
+k=10
+
+data1&lt;-fastfood[sample(nrow(fastfood)),]
+folds&lt;-cut(seq(1:nrow(fastfood)),breaks=k,labels=F)
+
+diags&lt;-NULL
+for(i in 1:k){
+train&lt;-data1[folds!=i,]
+test&lt;-data1[folds==i,]
+truth&lt;-test$cals
+fit6&lt;- glm(cals~sugar+restaurant,data=train,family=binomial(link=&quot;logit&quot;))
+probs&lt;- predict(fit6, newdata=test, type=&quot;response&quot;)
+diags&lt;-rbind(diags,class_diag(probs,truth))}
+
+apply(diags,2,mean)</code></pre>
+<pre><code>##       acc      sens      spec       ppv       auc 
+## 0.7474194 0.7573036 0.7442700 0.7329225 0.8052413</code></pre>
+<p>when sugar and cal fat are 0, the predicted probability of calories being greater than 500 is 34.37543%. For every gram of sugar the probability of calories being greater than 500 increases by 1.64689%. For every cal fat, the predicted probability of calories being greater than 500 increases by 0.17011%. Accuracy was 0.7508306 (correctly classified proportion), sensitivity was 0.7638889 (proportion of 1 cases that were classified correctly), specificity was 0.7733333 (proportion of 0 cases that were classified correctly), and recall was 0.7284768 (predicted 1s that were actually 1s). AUC is 0.8110403 meaning restaurant and sugar content are good (greater than 0.8) predictors of whether a food item contains more than 500 calories. Results of the 10-fold CV showed accuracy of 0.7468817, sensitivity of 0.7532425, and recall of 0.7334141.</p>
+<ul>
+<li><strong>6. (10 pts)</strong> Choose one variable you want to predict (can be one you used from before; either binary or continuous) and run a LASSO regression inputting all the rest of your variables as predictors. Choose lambda to give the simplest model whose accuracy is near that of the best (i.e., <code>lambda.1se</code>). Discuss which variables are retained. Perform 10-fold CV using this model: if response in binary, compare model’s out-of-sample accuracy to that of your logistic regression in part 5; if response is numeric, compare the residual standard error (at the bottom of the summary output, aka RMSE): lower is better fit!</li>
+</ul>
+<pre class="r"><code>library(glmnet)
+y&lt;-as.matrix(fastfood$cals)
+x&lt;-fastfood%&gt;%dplyr::select(-cals,-restaurant,-item,-salad,-predicted,-X1)%&gt;%mutate_all(scale)%&gt;%as.matrix
+cv&lt;-cv.glmnet(x,y)
+cv&lt;-cv.glmnet(x,y,family=&quot;binomial&quot;)
+lasso&lt;-glmnet(x,y,family=&quot;binomial&quot;,lambda=cv$lambda.1se)
+coef(lasso)</code></pre>
+<pre><code>## 17 x 1 sparse Matrix of class &quot;dgCMatrix&quot;
+##                       s0
+## (Intercept)  5.552540771
+## calories    46.404653403
+## cal_fat      .          
+## total_fat    4.571000640
+## sat_fat      .          
+## trans_fat    0.007188096
+## cholesterol  0.558996955
+## sodium      -0.046369711
+## total_carb   .          
+## fiber        2.038548960
+## sugar        0.175033295
+## protein      1.808375613
+## vit_a       -0.613151143
+## vit_c        .          
+## calcium     -1.779542605
+## trans_fat_c  0.001145070
+## cal_fat_c    .</code></pre>
+<pre class="r"><code>set.seed(1234)
+k=10
+
+data1&lt;-fastfood[sample(nrow(fastfood)),]
+folds&lt;-cut(seq(1:nrow(fastfood)),breaks=k,labels=F)
+
+diags2&lt;-NULL
+for(i in 1:k){
+train2&lt;-data1[folds!=i,]
+test2&lt;-data1[folds==i,]
+truth2&lt;-test$cals
+fit7&lt;- glm(cals~calories+total_fat+sat_fat+trans_fat+cholesterol+fiber+vit_a+trans_fat_c,data=train,family=binomial(link=&quot;logit&quot;))
+probs2&lt;- predict(fit7, newdata=test, type=&quot;response&quot;)
+diags2&lt;-rbind(diags2,class_diag(probs2,truth2))}
+
+apply(diags2,2,mean)</code></pre>
+<pre><code>##  acc sens spec  ppv  auc 
+##    1    1    1    1    1</code></pre>
+<p>categorical variables were excluded from the lasso. calories, total_fat, sat_fat, trans_fat, cholesterol, fiber, vit_a, and trans_fat_c were retained. AUC is 1, meaning the retained predictor variables are excellent predictors of whether there is more than 500 calories in a food item.</p>
+</div>

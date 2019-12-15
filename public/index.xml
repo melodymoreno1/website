@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Melody Moreno</title>
+    <link>/</link>
+    <description>Recent content on Melody Moreno</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-US</language>
+    <lastBuildDate>Sat, 14 Dec 2019 00:00:00 +0000</lastBuildDate>
+    
+	<atom:link href="/index.xml" rel="self" type="application/rss+xml" />
+    
+    
+    <item>
+      <title>Regular Expressions</title>
+      <link>/blog/regex-things/</link>
+      <pubDate>Sat, 14 Dec 2019 00:00:00 +0000</pubDate>
+      
+      <guid>/blog/regex-things/</guid>
+      <description>Regular expressions (regex) detect patterns in strings of text for locating/altering specific text. For example, in the following string of text, findall can be used to locate all instances of “just” followed by any character (signified by “.”) any amount of times (signified by “+”), split can be used to split the string where there is a comma followed by a space, and sub can replace text in the string with another text.</description>
+    </item>
+    
+    <item>
+      <title>Projects</title>
+      <link>/projects/</link>
+      <pubDate>Sun, 02 Oct 2016 22:55:05 -0400</pubDate>
+      
+      <guid>/projects/</guid>
+      <description>Projects Fall 2019 SDS 348 Projects:
+  Project 1 : Exploratory Data Analysis
+  Project 2 : Modeling
+  </description>
+    </item>
+    
+    <item>
+      <title>Project 1: Exploratory Data Analysis</title>
+      <link>/project1/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>/project1/</guid>
+      <description>EDA ProjectDataBoth data sets were retrieved from github. The tv_ratings dataset includes a title ID, season number, title of the TV show, date the show was first aired, average rating, share, and genres. The movie_profit dataset includes the name of the movie, studio, the production budget, the domestic revenue (USA), worldwide revenue, distributor of the film, MPAA rating, and genre. I selected these because of my interest in TV and film.</description>
+    </item>
+    
+    <item>
+      <title>Project 2: Modeling, Testing, and Predicting</title>
+      <link>/project2/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>/project2/</guid>
+      <description>Modeling0. (5 pts) Introduce your dataset and each of your variables (or just your main variables if you have lots) in a paragraph.fastfood &amp;lt;- readr::read_csv(&amp;quot;https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2018/2018-09-04/fastfood_calories.csv&amp;quot;)library(dplyr)library(tidyverse)fastfood&amp;lt;-fastfood%&amp;gt;%na.omitThe fastfood dataset includes nutritional facts from 7 different fast food restaurants (Mcdonalds, Arbys, Taco Bell, Chick Fil-A, Sonic, Subway, and Dairy Queen). Variables include Restaurant (the 7 restaurants), item (food item), and various nutritional values including calories (# of calories), calories from fat (# of calories), total fat (g), saturated fat (g), trans fat (g), cholesterol (mg), sodium (mg), total carbohydrates (g), fiber (g), sugar (g), protein (g), vitamin A (% daily value), vitamin C (% daily value), and calcium (% daily value)</description>
+    </item>
+    
+    <item>
+      <title>resume</title>
+      <link>/resume/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>/resume/</guid>
+      <description>EDUCATIONThe University of Texas at AustinFall 2019
+B.S., Psychology, BSA, Biology • Certificate in Forensic Science • Pre-Health Professions Certificate
+Houston Community CollegeMay 2016
+Associates in Arts, High Honors
+EXPERIENCEAustin Child Guidance CenterAdministrative AssistantAustin, TX
+January 2018 – December 2019
+• Check in clients for their appointment
+• Answer multi-line phone system
+• Clerical work, including making copies, scanning, and filing</description>
+    </item>
+    
+  </channel>
+</rss>
